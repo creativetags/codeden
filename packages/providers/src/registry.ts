@@ -5,6 +5,7 @@ import { CodexAdapter } from "./codex/adapter";
 import { CursorAdapter } from "./cursor/adapter";
 import { GeminiAdapter } from "./gemini/adapter";
 import { OpenCodeAdapter } from "./opencode/adapter";
+import { PiAdapter } from "./pi/adapter";
 
 /** The set of adapters a runner has loaded, keyed by id. */
 export class ProviderRegistry {
@@ -61,7 +62,7 @@ export class ProviderRegistry {
   }
 }
 
-/** Fresh instances of the built-in real providers (Claude Code, Codex, OpenCode, Cursor, Gemini CLI). */
+/** Fresh instances of the built-in real providers (Claude Code, Codex, OpenCode, Cursor, Gemini CLI, Pi). */
 export function builtinProviders(): ProviderAdapter[] {
   return [
     new ClaudeAdapter(),
@@ -69,6 +70,7 @@ export function builtinProviders(): ProviderAdapter[] {
     new OpenCodeAdapter(),
     new CursorAdapter(),
     new GeminiAdapter(),
+    new PiAdapter(),
   ];
 }
 

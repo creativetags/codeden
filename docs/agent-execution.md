@@ -206,6 +206,7 @@ These are checked in the issues:
 | Codex | `codex app-server` | `codex exec --json` per turn | Loses approvals and escalations through the classifier, steering, elicitations, sub-agent threads and `thread/fork` |
 | OpenCode | A private `opencode serve` per session | `opencode run` | Loses permission asks, questions and the event stream |
 | Cursor, Gemini CLI | ACP | Their print modes | Lose permission requests, plan approval and session load |
+| Pi | `pi --mode rpc`, JSONL per session | `pi -p --mode json` per turn | Loses the approval gate (an extension only loads in a session) and steering; compaction on demand and Pi's own session file survive |
 
 **Keep the SDK and the protocol adapters.** A provider home needs only an environment variable, which every adapter already passes (`claudeEnv` merges `SessionOptions.env`). The only Claude-specific cost is the SDK helpers in §4.3. `persistSession: false` would break resume and fork. `sessionStore` (alpha in SDK 0.3.318) mirrors transcripts to a store CodeDen owns. That is a later option so a conversation can survive a lost sandbox (remote-runners phase 7).
 

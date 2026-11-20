@@ -8,7 +8,7 @@ From `npx codeden` to your first agent session in a couple of minutes, without t
 |---|---|---|
 | Node.js 24 or newer | `node --version` | CodeDen refuses to start on older versions |
 | git | `git --version` | Set `user.name` and `user.email`: `git config --global user.name "Your Name"` |
-| Claude Code, Codex CLI, OpenCode 2.2+, the Cursor CLI and/or Gemini CLI 0.68+ | `claude --version`, `codex --version`, `opencode --version`, `agent --version`, `gemini --version` | At least one, **signed in** (`claude auth login`, `codex login`, `opencode auth login`, `agent login`, or `gemini` and its sign-in prompt; OpenCode's own free models work without an account) |
+| Claude Code, Codex CLI, OpenCode 2.2+, the Cursor CLI, Gemini CLI 0.68+ and/or Pi 1.5+ | `claude --version`, `codex --version`, `opencode --version`, `agent --version`, `gemini --version`, `pi --version` | At least one, **signed in** (`claude auth login`, `codex login`, `opencode auth login`, `agent login`, `gemini` and its sign-in prompt, or `pi auth login <provider>`; OpenCode's own free models work without an account) |
 | GitHub CLI *(optional)* | `gh auth status` | Needed for issues, PRs, evidence, triage and the factory |
 | Edge or Chrome *(optional)* | | For the browser panel and the agents' browser tools |
 
@@ -17,6 +17,8 @@ CodeDen uses your installed CLIs and their logins, including claude.ai, ChatGPT,
 **Cursor:** CodeDen drives your own Cursor CLI with your own login, as it does for the other CLIs, and runs the models your Cursor plan includes. Check your plan's terms for automated or unattended use, such as the software factory, before you point it at Cursor.
 
 **Gemini CLI:** CodeDen drives your own Gemini CLI with the login you chose in it (Google, a Gemini API key or Vertex AI), and never changes that choice. Check your plan's terms for automated or unattended use, such as the software factory, before you point it at Gemini CLI.
+
+**Pi:** CodeDen drives your own Pi with its own login, settings and extensions, and reads its model list from it. Pi has no permission prompts of its own, so CodeDen decides every tool call with the session's permission level.
 
 ## 2. Start CodeDen
 
@@ -51,7 +53,7 @@ The first screen checks, in parallel:
 
 Anything that passes is never asked about. Anything missing gets one fix: the install command, or a **Sign in** button that runs the tool's own login (`claude auth login`, `codex login`, `opencode auth login`, `agent login`, `gemini`, `gh auth login`) in a terminal right on the page, so the provider's normal browser login handles it. **Sign in** runs the exact copy CodeDen found, by its full path.
 
-CodeDen looks for Claude Code, Codex, OpenCode, the Cursor CLI, Gemini CLI and the GitHub CLI on your PATH, then in their installers' own folders, such as `~/.local/bin`, where the native Claude Code installer puts `claude` even when that folder isn't on your PATH. A copy that doesn't run (for example an npm shim left behind after its package was removed) is skipped and shown as **installed but broken**, with its path; see [Troubleshooting](troubleshooting.md#claude-code-codex-or-opencode-is-installed-but-broken). **Re-check** also picks up PATH changes you made after starting CodeDen.
+CodeDen looks for Claude Code, Codex, OpenCode, the Cursor CLI, Gemini CLI, Pi and the GitHub CLI on your PATH, then in their installers' own folders, such as `~/.local/bin`, where the native Claude Code installer puts `claude` even when that folder isn't on your PATH. A copy that doesn't run (for example an npm shim left behind after its package was removed) is skipped and shown as **installed but broken**, with its path; see [Troubleshooting](troubleshooting.md#claude-code-codex-or-opencode-is-installed-but-broken). **Re-check** also picks up PATH changes you made after starting CodeDen.
 
 ![The first-run setup checklist](images/setup.png)
 

@@ -126,6 +126,12 @@ export interface ProviderSession {
    * reports it with `session.updated { planMode: false }`.
    */
   setPlanMode?(on: boolean): Promise<void>;
+  /**
+   * Name the provider's own copy of the conversation where its apps list one (Pi's session file),
+   * so the user finds it by name there. Optional, and never needed for the session to work: the
+   * provider's history is the user's, and CodeDen keeps its own title.
+   */
+  setTitle?(title: string): Promise<void>;
   /** Close the session and end `events`. Idempotent. */
   close(): Promise<void>;
   /** Provider session/thread id for resume, once known. */

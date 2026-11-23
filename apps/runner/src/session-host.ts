@@ -235,6 +235,9 @@ export class SessionHost {
     if (modelOrEffort) await session.configure?.(change);
     if (cmd.autonomy !== undefined) await session.setAutonomy?.(cmd.autonomy);
     if (cmd.planMode !== undefined) await session.setPlanMode?.(cmd.planMode);
+    // The provider's own name for the conversation (Pi's session file): cosmetic, so a provider
+    // without one is not an error.
+    if (cmd.title !== undefined) await session.setTitle?.(cmd.title);
   }
 
   async respond(cmd: RunnerCommandOf<"session.respond">): Promise<void> {

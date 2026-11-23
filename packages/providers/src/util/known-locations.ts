@@ -56,6 +56,11 @@ export function knownLocations(name: string, opts: KnownLocationOptions = {}): s
       // Homebrew (`brew install gemini-cli`), for apps started from the macOS Finder; npm's
       // global folder is on PATH.
       return platform === "darwin" ? ["/opt/homebrew/bin/gemini", "/usr/local/bin/gemini"] : [];
+    case "pi": {
+      // npm's global folder is on PATH; Homebrew's is not for apps started from the Finder.
+      const homebrew = platform === "darwin" ? ["/opt/homebrew/bin/pi", "/usr/local/bin/pi"] : [];
+      return [p.join(home, ".local", "bin", exe("pi")), ...homebrew];
+    }
     case "gh":
       if (win) {
         const programFiles = env.ProgramFiles || "C:\\Program Files";

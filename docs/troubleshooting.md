@@ -84,6 +84,7 @@ Where CodeDen looks, in order:
    - OpenCode: `~/.opencode/bin/opencode` (`%USERPROFILE%\.opencode\bin\opencode.exe` on Windows), where its install script puts it; `/opt/homebrew/bin/opencode` and `/usr/local/bin/opencode` on macOS.
    - Cursor CLI: `cursor-agent`, or an `agent` whose version is Cursor's (`2026.10.22-…`): `~/.local/bin/agent`, and `%LOCALAPPDATA%\cursor-agent\agent.cmd` on Windows.
    - Gemini CLI: npm's global folder (on your PATH); `/opt/homebrew/bin/gemini` and `/usr/local/bin/gemini` on macOS.
+   - Pi: npm's global folder (on your PATH), `~/.local/bin/pi`, and `/opt/homebrew/bin/pi` and `/usr/local/bin/pi` on macOS.
    - GitHub CLI: `C:\Program Files\GitHub CLI\gh.exe` on Windows; `/opt/homebrew/bin/gh` and `/usr/local/bin/gh` on macOS.
 
 The first copy that answers `--version` is used for detection, for sessions and for **Sign in**, so a working native install wins over a broken shim earlier on PATH. When the native installer says its folder *"is not in your PATH"*, CodeDen still finds it; add the folder to your PATH if you also want `claude` to work in your own terminals.
@@ -120,7 +121,7 @@ The Codex apps (the ChatGPT desktop app's Codex, the Codex IDE extension) list e
 
 Sessions from older CodeDen versions are still listed. To hide them, open **Settings → Providers → Provider apps** and choose **Review** next to **Hide CodeDen's sessions from the Codex app**. CodeDen lists the conversations it started that the Codex app still shows (found by its own record of them, never by their titles) and archives them once you confirm. They are archived, not deleted: they appear under the Codex app's archived conversations, and CodeDen can still resume and fork them.
 
-Claude Code, OpenCode and Gemini CLI don't add CodeDen's sessions to your own lists. Claude Code labels them as SDK sessions, which its `/resume` leaves out. OpenCode's are archived. Gemini CLI lists sessions per folder, and CodeDen's run in their own worktrees. The Cursor CLI does list them; see the next section.
+Claude Code, OpenCode, Gemini CLI and Pi don't add CodeDen's sessions to your own lists. Claude Code labels them as SDK sessions, which its `/resume` leaves out. OpenCode's are archived. Gemini CLI lists sessions per folder, and CodeDen's run in their own worktrees. Pi keeps CodeDen's sessions in CodeDen's own folder, so `pi --resume` never lists them. The Cursor CLI does list them; see the next section.
 
 ### CodeDen's sessions show up in the Cursor CLI's chat list
 

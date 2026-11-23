@@ -9,6 +9,7 @@ import { startAppServer } from "../src/codex/process";
 import { CURSOR_AGENT } from "../src/cursor/adapter";
 import { GEMINI_AGENT } from "../src/gemini/adapter";
 import { openCodeServerEnv } from "../src/opencode/server";
+import { piEnv } from "../src/pi/env";
 import { builtinProviders } from "../src/registry";
 import { agentEnv } from "../src/util/agent-env";
 import type { ResolvedCommand } from "../src/util/exec";
@@ -114,6 +115,7 @@ const SPAWN_ENV: Record<string, () => Env | Promise<Env>> = {
   opencode: () => openCodeServerEnv(process.env, SESSION_EXTRAS, "pw", {}),
   cursor: () => acpAgentEnv(CURSOR_AGENT),
   gemini: () => acpAgentEnv(GEMINI_AGENT),
+  pi: () => piEnv(SESSION_EXTRAS),
 };
 
 describe("agent session environment", () => {

@@ -321,6 +321,7 @@ export function createServices(opts: ServicesOptions): AppServices {
     settings: opts.settings,
     utility,
     tokens: mcpTokens,
+    runnerOf: (id) => runners.forSession(id),
     log: opts.log,
   });
   const github = new GithubService({

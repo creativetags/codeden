@@ -12,8 +12,10 @@ import type { EventStore } from "../../events/store";
 import type { McpTokenStore } from "../../mcp/tokens";
 import type { SettingsStore } from "../../settings-store";
 import { errorMessage } from "../errors";
+import type { RunnerPort } from "../runner-port";
 import type { UtilityService } from "../utility";
 import { findConflicts } from "./conflicts";
+import { applyTitle } from "./reconfigure";
 import type { SessionRepo } from "./repo";
 import type { SessionService } from "./session-service";
 
@@ -25,6 +27,8 @@ export interface LifecycleDeps {
   settings: SettingsStore;
   utility: UtilityService;
   tokens: McpTokenStore;
+  /** The session's runner, for naming the provider's own copy of it (optional: tests). */
+  runnerOf?: (sessionId: string) => RunnerPort;
   log?: (message: string) => void;
 }
 
@@ -113,7 +117,10 @@ export class SessionLifecycle {
         finalMessage: null,
         firstMessage: text,
       });
-      if (title) this.deps.repo.update(sessionId, (s) => (s.title ? s : { ...s, title }));
+      if (title) {
+        this.deps.repo.update(sessionId, (s) => (s.title ? s : { ...s, title }));
+        this.nameProviderSession(sessionId, title);
+      }
     } catch (error) {
       this.deps.log?.(`utility title: ${errorMessage(error)}`);
     } finally {
@@ -121,6 +128,15 @@ export class SessionLifecycle {
     }
   }
 
+  /**
+   * Name the provider's own copy of the conversation, where it has a name for it (§7.2, Pi's
+   * session file). Cosmetic, so it never holds a title up or fails one.
+   */
+  private nameProviderSession(sessionId: string, title: string): void {
+    const runner = this.deps.runnerOf?.(sessionId);
+    if (!runner) return;
+    void applyTitle(runner, sessionId, title);
+  }
   private scheduleDrain(): void {
     if (this.drainScheduled) return;
     this.drainScheduled = true;
@@ -177,7 +193,10 @@ export class SessionLifecycle {
         settings.utilityModel.jobs.sessionTitles
       ) {
         const title = await this.deps.utility.sessionTitle(ctx);
-        if (title) this.deps.repo.update(sessionId, (s) => (s.title ? s : { ...s, title }));
+        if (title) {
+          this.deps.repo.update(sessionId, (s) => (s.title ? s : { ...s, title }));
+          this.nameProviderSession(sessionId, title);
+        }
       }
       const hasFollowups = turnItems.some((r) => r.item.kind === "followups");
       if (!hasFollowups && settings.followups.enabled && settings.utilityModel.jobs.followups) {

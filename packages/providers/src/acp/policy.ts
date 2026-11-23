@@ -15,10 +15,18 @@ import { type AcpToolState, commandOf, mcpOf, pathsOf, workdirOf } from "./items
 /** What CodeDen does with one `session/request_permission`. */
 export type AcpPolicyDecision =
   | { kind: "allow" }
-  | { kind: "deny"; message: string }
+  /**
+   * `plan`: refused only because the session is planning (plan mode has no edits or writing
+   * commands). An agent with no plan mode of its own reads this as its ask to start (§7.2).
+   */
+  | { kind: "deny"; message: string; plan?: true }
   | { kind: "ask"; action: ApprovalAction; reason: string };
 
 const ALLOW: AcpPolicyDecision = { kind: "allow" };
+
+/** What the model is told when plan mode refuses an edit (`deny.plan`). */
+export const PLAN_EDIT_DENIAL =
+  "Plan mode: no edits until the plan is approved. Present the plan instead.";
 
 /** The policy for a session's options: its level, worktree, role and MCP servers. */
 export function policyFor(opts: SessionOptions): AcpPolicy {
@@ -136,7 +144,13 @@ export class AcpPolicy {
       if (touchesCodeden(risk) && this.isReadOnly) return this.credentialsDenial();
       // Agent sessions (read-only level, or planning) may run the project's checks; roles may not.
       const reason = readOnlyCommandDenial(command, { allowChecks: !this.readOnly });
-      if (reason) return { kind: "deny", message: `${this.readOnlyPrefix()}: ${reason}.` };
+      if (reason) {
+        return {
+          kind: "deny",
+          ...(this.planning && !this.isReadOnly ? { plan: true as const } : {}),
+          message: `${this.readOnlyPrefix()}: ${reason}.`,
+        };
+      }
       if (this.isReadOnly) return ALLOW;
     }
     return this.gate(risk, "command");
@@ -144,13 +158,14 @@ export class AcpPolicy {
 
   private edit(call: AcpToolState): AcpPolicyDecision {
     if (this.isReadOnly || this.planning) {
+      if (this.planning && !this.isReadOnly) {
+        return { kind: "deny", plan: true, message: PLAN_EDIT_DENIAL };
+      }
       return {
         kind: "deny",
-        message: this.planning
-          ? "Plan mode: no edits until the plan is approved. Present the plan instead."
-          : this.readOnly
-            ? "This session is read-only: it cannot edit files. Act through CodeDen tools instead."
-            : "This session has read-only permissions: it cannot edit files, commit or push. Report what you found instead.",
+        message: this.readOnly
+          ? "This session is read-only: it cannot edit files. Act through CodeDen tools instead."
+          : "This session has read-only permissions: it cannot edit files, commit or push. Report what you found instead.",
       };
     }
     const paths = pathsOf(call, this.ctx.cwd);

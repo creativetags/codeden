@@ -22,6 +22,9 @@ type MetaWithPending = StoredStartMeta & { pendingConfig?: PendingConfig };
 /** How long `PATCH` waits for the runner to take an autonomy or plan mode change. */
 const LIVE_TIMEOUT_MS = 10_000;
 
+/** Naming the provider's own session is cosmetic, so it gets less time than a live setting. */
+const TITLE_TIMEOUT_MS = 5_000;
+
 function fallbackMeta(): StoredStartMeta {
   return { workspaceMode: "worktree", workspaceFallback: null, forced: null, queuedBehind: [] };
 }
@@ -75,7 +78,22 @@ export async function updateSession(
   if (req.autonomy !== undefined) live.autonomy = session.autonomy;
   if (req.planMode !== undefined) live.planMode = session.planMode ?? false;
   if (Object.keys(live).length > 0) await applyLive(repo, runner, session.id, live);
+  if (req.title !== undefined) await applyTitle(runner, session.id, req.title);
   return session;
+}
+
+/**
+ * Name the provider's own copy of the conversation where it has one (Pi's session file), so the
+ * user finds it by name in the provider's own list. Best effort: a session the runner no longer
+ * hosts keeps the name it has, and nothing depends on it.
+ */
+export async function applyTitle(runner: RunnerPort, id: string, title: string): Promise<void> {
+  if (!title.trim()) return;
+  try {
+    await runner.request({ name: "session.configure", sessionId: id, title }, TITLE_TIMEOUT_MS);
+  } catch {
+    // Cosmetic: the provider's own name for the conversation is the user's to keep or lose.
+  }
 }
 
 /**

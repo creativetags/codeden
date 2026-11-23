@@ -10,6 +10,7 @@ describe("provider registry", () => {
       "opencode",
       "cursor",
       "gemini",
+      "pi",
     ]);
     const claude = getProvider("claude");
     const codex = getProvider("codex");
@@ -36,6 +37,22 @@ describe("provider registry", () => {
       userQuestions: false,
       planMode: true,
       steer: false,
+      readOnly: true,
+      liveAutonomy: true,
+    });
+    // Pi: its own approvals gate, compaction, fork and the emulated plan mode; a dialog from one
+    // of the user's own extensions reaches them as a question. No subagents.
+    const pi = getProvider("pi");
+    expect(pi?.displayName).toBe("Pi");
+    expect(pi?.capabilities()).toMatchObject({
+      approvals: true,
+      compact: true,
+      steer: true,
+      userQuestions: true,
+      subagents: false,
+      fork: true,
+      planMode: true,
+      reasoningEffort: true,
       readOnly: true,
       liveAutonomy: true,
     });

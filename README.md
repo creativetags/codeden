@@ -100,6 +100,7 @@ CodeDen runs the coding agents you already have, with the logins you already hav
 | [OpenCode](https://opencode.ai) | `opencode` 2.2+, which can reach many more model providers, including models running on your own machine |
 | [Cursor](https://cursor.com/docs/cli/overview) | The Cursor CLI (`agent`), signed in with your Cursor account |
 | [Gemini CLI](https://geminicli.com) | `gemini` 0.68+, signed in with your Google account |
+| Pi | `pi` 1.5+, signed in with at least one of the model providers it supports |
 
 Mix and match freely. Each session picks its own agent and model, and the factory can build with one provider and review with another. You need at least one of them. The setup screen tells you which are ready and how to fix the rest.
 

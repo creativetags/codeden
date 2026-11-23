@@ -10,7 +10,7 @@ import { WILDCARD, wildcardPattern } from "./wildcard";
 
 /**
  * The agent CLIs' own logins (§11.2, §15): Claude Code's, Codex's, Gemini CLI's, OpenCode's,
- * Cursor CLI's and the GitHub CLI's OAuth tokens and keys, kept as plain files in the user's
+ * Cursor CLI's, Pi's and the GitHub CLI's OAuth tokens and keys, kept as plain files in the user's
  * home. An agent that reads or copies one can take over the account, so reading, copying,
  * moving, archiving or searching one (or the folder that holds it) asks at every level, Full
  * included. Writing one already asks as a write outside the worktree. Their settings (Codex's
@@ -50,6 +50,8 @@ function locations(ctx: PathContext, home: string): Record<string, string[]> {
     CODEX_HOME: set("CODEX_HOME", p.join(home, ".codex")),
     CLAUDE_CONFIG_DIR: set("CLAUDE_CONFIG_DIR", p.join(home, ".claude")),
     GEMINI_CLI_HOME: set("GEMINI_CLI_HOME", home),
+    // Pi keeps its settings and credentials in its agent folder, `~/.pi/agent` by default.
+    PI_CODING_AGENT_DIR: set("PI_CODING_AGENT_DIR", p.join(home, ".pi", "agent")),
     XDG_DATA_HOME: set("XDG_DATA_HOME", p.join(home, ".local", "share")),
     XDG_CONFIG_HOME: config,
     GH_CONFIG_DIR: set("GH_CONFIG_DIR", p.join(config[0] as string, "gh")),
@@ -73,6 +75,7 @@ export function providerLoginFolders(ctx: PathContext): string[] {
     ...under("CODEX_HOME"),
     ...under("CLAUDE_CONFIG_DIR"),
     ...under("GEMINI_CLI_HOME", ".gemini"),
+    ...(at.PI_CODING_AGENT_DIR ?? []),
     ...under("XDG_DATA_HOME", "opencode"),
     ...under("GH_CONFIG_DIR"),
     ...under("XDG_CONFIG_HOME", "gh"),

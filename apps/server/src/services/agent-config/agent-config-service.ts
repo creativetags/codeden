@@ -30,8 +30,11 @@ import {
   listClaudeUser,
   listCodexProject,
   listCodexUser,
+  listPiProject,
+  listPiUser,
   loadedClaude,
   loadedCodex,
+  loadedPi,
   type ProjectRef,
 } from "./catalog";
 import { AgentConfigFiles } from "./files";
@@ -96,13 +99,16 @@ export class AgentConfigService {
 
   list(query: AgentConfigListQuery): AgentConfigListResponse {
     const project = query.projectId ? this.project(query.projectId) : null;
-    const wantClaude = query.provider !== "codex";
-    const wantCodex = query.provider !== "claude";
+    const wantClaude = query.provider !== "codex" && query.provider !== "pi";
+    const wantCodex = query.provider !== "claude" && query.provider !== "pi";
+    const wantPi = query.provider !== "claude" && query.provider !== "codex";
     const files = [
       ...(wantClaude ? listClaudeUser(this.deps.home) : []),
       ...(wantCodex ? listCodexUser(this.deps.home) : []),
+      ...(wantPi ? listPiUser(this.deps.home) : []),
       ...(project && wantClaude ? listClaudeProject(project) : []),
       ...(project && wantCodex ? listCodexProject(project) : []),
+      ...(project && wantPi ? listPiProject(project) : []),
     ].filter((f) => !query.kind || f.kind === query.kind);
     return { files, autoMemoryDir: project?.autoMemoryDir ?? null };
   }
@@ -267,7 +273,9 @@ export class AgentConfigService {
         ? loadedCodex(home, cwd, gitRoot, project)
         : provider === "claude"
           ? loadedClaude(home, cwd, gitRoot, project)
-          : { memory: [], skills: [], subagents: [] };
+          : provider === "pi"
+            ? loadedPi(home, cwd, gitRoot, project)
+            : { memory: [], skills: [], subagents: [] };
     const skills = this.skills.forSession(found.skills, cwd, gitRoot, project?.id ?? null);
     return { gitRoot, files: { ...found, skills } };
   }

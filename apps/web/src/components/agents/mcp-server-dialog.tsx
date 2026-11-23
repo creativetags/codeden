@@ -35,6 +35,8 @@ const SCOPES: Record<AgentConfigProvider, { value: McpConfigScope; label: string
     { value: "project", label: "Project (.mcp.json)" },
   ],
   codex: [{ value: "user", label: "User (config.toml)" }],
+  // Pi's servers live in its own mcp.json, which this screen doesn't write yet.
+  pi: [],
 };
 
 function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {

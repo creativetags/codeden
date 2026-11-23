@@ -8,7 +8,7 @@ import { Id, Timestamp } from "./common";
  * `/api/agent-config`.
  */
 
-export const AgentConfigProvider = z.enum(["claude", "codex"]);
+export const AgentConfigProvider = z.enum(["claude", "codex", "pi"]);
 export type AgentConfigProvider = z.infer<typeof AgentConfigProvider>;
 
 /** Agent-config screens that exist only for some providers. */
@@ -29,6 +29,9 @@ export interface AgentConfigFeatures {
 export const agentConfigFeatures: Record<AgentConfigProvider, AgentConfigFeatures> = {
   claude: { hooks: true, skillSwitches: true },
   codex: { hooks: false, skillSwitches: true },
+  // Pi's settings list extra skill paths rather than switching one off, and extensions are the
+  // user's own files, not hooks: neither screen exists for it.
+  pi: { hooks: false, skillSwitches: false },
 };
 
 /** The providers that have a given agent-config feature. */
@@ -181,9 +184,13 @@ export const McpServerSpec = z.discriminatedUnion("type", [
 ]);
 export type McpServerSpec = z.infer<typeof McpServerSpec>;
 
-/** One configured MCP server. `codeden` entries are CodeDen's own server (read-only). */
+/**
+ * One configured MCP server. `codeden` entries are CodeDen's own server (read-only). A `pi`
+ * entry exists in Pi's own `mcp.json`, which CodeDen doesn't edit yet: the entries are listed
+ * only where a provider writes them.
+ */
 export const McpServerEntry = z.object({
-  provider: z.enum(["claude", "codex", "codeden"]),
+  provider: z.enum(["claude", "codex", "pi", "codeden"]),
   scope: McpConfigScope,
   name: z.string(),
   spec: McpServerSpec,

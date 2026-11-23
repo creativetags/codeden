@@ -52,6 +52,7 @@ export const SCOPE_LABELS: Record<AgentConfigScope, string> = {
 export const PROVIDER_LABELS: Record<AgentConfigProvider, string> = {
   claude: "Claude Code",
   codex: "Codex",
+  pi: "Pi",
 };
 
 /** The request that saves the form: `add`, or `update` of the hook being edited. */

@@ -70,6 +70,27 @@ export function listCodexUser(home: string): AgentConfigFile[] {
   ];
 }
 
+/** Pi's agent directory, where its own configuration and user resources live. */
+export function piAgentDir(home: string): string {
+  return join(home, ".pi", "agent");
+}
+
+/** Pi's user-level files: its AGENTS.md (or override, or CLAUDE.md) and its skills. */
+export function listPiUser(home: string): AgentConfigFile[] {
+  const r = homeRoot(home);
+  const dir = piAgentDir(home);
+  const memory = (name: string, force: boolean) => {
+    const meta = { provider: "pi", kind: "memory", scope: "user" } as const;
+    return force ? [fileEntry(r, join(dir, name), meta)] : existing(r, join(dir, name), meta);
+  };
+  return [
+    ...memory("AGENTS.md", true),
+    ...memory("AGENTS.override.md", false),
+    ...memory("CLAUDE.md", false),
+    ...skillsIn(r, join(dir, "skills"), "pi", "user").map((s) => s.file),
+  ];
+}
+
 /** A project's Claude files: root and nested CLAUDE.md, local file, rules, skills, subagents, auto memory. */
 export function listClaudeProject(p: ProjectRef): AgentConfigFile[] {
   const r = projectRoot(p);
@@ -114,6 +135,26 @@ export function listAutoMemory(p: ProjectRef): AgentConfigFile[] {
   ];
 }
 
+/**
+ * A project's Pi files: the context files it loads (`AGENTS.md`, `AGENTS.override.md` or
+ * `CLAUDE.md`, in the project and its folders) and its skills (`.pi/skills`, `.agents/skills`).
+ */
+export function listPiProject(p: ProjectRef): AgentConfigFile[] {
+  const r = projectRoot(p);
+  const meta = { provider: "pi", kind: "memory", scope: "project" } as const;
+  const nested = nestedMemoryFiles(p.path).filter((f) =>
+    /^(agents(\.override)?|claude)\.md$/i.test(basename(f)),
+  );
+  return [
+    fileEntry(r, join(p.path, "AGENTS.md"), meta),
+    ...existing(r, join(p.path, "AGENTS.override.md"), meta),
+    ...existing(r, join(p.path, "CLAUDE.md"), meta),
+    ...nested.map((f) => fileEntry(r, f, meta)),
+    ...skillsIn(r, join(p.path, ".pi", "skills"), "pi", "project").map((s) => s.file),
+    ...skillsIn(r, join(p.path, ".agents", "skills"), "pi", "project").map((s) => s.file),
+  ];
+}
+
 /** A project's Codex files: root and nested AGENTS.md, skills, agents. */
 export function listCodexProject(p: ProjectRef): AgentConfigFile[] {
   const r = projectRoot(p);
@@ -151,10 +192,13 @@ export function listSkills(home: string, project: ProjectRef | null): Discovered
   return [
     ...skillsIn(homeRoot(home), join(home, ".claude", "skills"), "claude", "user"),
     ...codexUserSkills(home),
+    ...skillsIn(homeRoot(home), join(piAgentDir(home), "skills"), "pi", "user"),
     ...(project && r
       ? [
           ...skillsIn(r, join(project.path, ".claude", "skills"), "claude", "project"),
           ...skillsIn(r, join(project.path, ".agents", "skills"), "codex", "project"),
+          ...skillsIn(r, join(project.path, ".pi", "skills"), "pi", "project"),
+          ...skillsIn(r, join(project.path, ".agents", "skills"), "pi", "project"),
         ]
       : []),
   ];
@@ -297,6 +341,47 @@ export function loadedCodex(
     memory: unique(memory, (f) => f.absolutePath),
     skills: unique(skills, (s) => s.file.absolutePath),
     subagents: unique(subagents, (f) => f.absolutePath),
+  };
+}
+
+/**
+ * What Pi loads at session start from `cwd`: its agent directory's context file (`AGENTS.md`,
+ * an `AGENTS.override.md`, or `CLAUDE.md`) and skills, then the same context files and skills in
+ * every folder from the repo root down to `cwd`.
+ */
+export function loadedPi(
+  home: string,
+  cwd: string,
+  gitRoot: string | null,
+  project: ProjectRef | null,
+): LoadedFiles {
+  const h = homeRoot(home);
+  const r: ConfigRoot = project ? projectRoot(project) : h;
+  const agentDir = piAgentDir(home);
+  // An override in a folder replaces that folder's AGENTS.md/CLAUDE.md, so only the first shows.
+  const first = (root: ConfigRoot, dir: string, scope: AgentConfigFile["scope"]) => {
+    for (const name of ["AGENTS.override.md", "AGENTS.md", "CLAUDE.md"]) {
+      const found = existing(root, join(dir, name), { provider: "pi", kind: "memory", scope });
+      if (found.length) return found;
+    }
+    return [];
+  };
+  const chain = dirsFromRootTo(gitRoot ?? cwd, cwd);
+  const memory = [
+    ...first(h, agentDir, "user"),
+    ...chain.flatMap((d) => first(rootFor(d, h, r), d, "project")),
+  ];
+  const skills = [
+    ...skillsIn(h, join(agentDir, "skills"), "pi", "user"),
+    ...chain.flatMap((d) => [
+      ...skillsIn(rootFor(d, h, r), join(d, ".pi", "skills"), "pi", "project"),
+      ...skillsIn(rootFor(d, h, r), join(d, ".agents", "skills"), "pi", "project"),
+    ]),
+  ];
+  return {
+    memory: unique(memory, (f) => f.absolutePath),
+    skills: unique(skills, (s) => s.file.absolutePath),
+    subagents: [],
   };
 }
 

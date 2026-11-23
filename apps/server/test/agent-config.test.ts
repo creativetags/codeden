@@ -12,7 +12,7 @@ import {
   McpServerWriteResponse,
 } from "@codeden/contracts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { loadedClaude, loadedCodex } from "../src/services/agent-config/catalog";
+import { loadedClaude, loadedCodex, loadedPi } from "../src/services/agent-config/catalog";
 import { claudeProjectSlug } from "../src/services/agent-config/paths";
 import { editTomlServer } from "../src/services/agent-config/toml-edit";
 import { type Harness, startHarness } from "./support/harness";
@@ -103,6 +103,11 @@ describe("agent configuration API", () => {
     );
     put(join(home, ".codex", "AGENTS.md"), "codex user\n");
     put(join(home, ".agents", "skills", "lint", "SKILL.md"), "---\nname: lint\n---\n");
+    put(join(home, ".pi", "agent", "AGENTS.md"), "pi user\n");
+    put(
+      join(h.repo, ".pi", "skills", "ship", "SKILL.md"),
+      "---\nname: ship\ndescription: Ship it\n---\nSteps\n",
+    );
     put(join(home, ".claude.json"), '{\n  "numStartups": 3,\n  "projects": {}\n}');
     put(join(home, ".codex", "config.toml"), CODEX_TOML);
     put(join(h.repo, "CLAUDE.md"), "# project\n");
@@ -389,7 +394,7 @@ describe("agent configuration API", () => {
     expect(loaded.hooks).toBeNull();
   });
 
-  it("applies Claude's and Codex's discovery rules from a working directory", () => {
+  it("applies each provider's discovery rules from a working directory", () => {
     const cwd = join(h.repo, "packages", "api");
     const project = { id: h.projectId, path: h.repo, autoMemoryDir: memoryDir };
     const claude = loadedClaude(h.home, cwd, h.repo, project);
@@ -406,5 +411,14 @@ describe("agent configuration API", () => {
       join(h.repo, "packages", "api", "AGENTS.md"),
     ]);
     expect(codex.skills.map((s) => s.name)).toEqual(["lint"]);
+
+    // Pi's agent directory, then each folder's own context file from the repo root down.
+    const pi = loadedPi(h.home, cwd, h.repo, project);
+    expect(pi.memory.map((f) => f.absolutePath).filter((p) => p.startsWith(h.home))).toEqual([
+      join(h.home, ".pi", "agent", "AGENTS.md"),
+      join(h.repo, "CLAUDE.md"),
+      join(h.repo, "packages", "api", "AGENTS.md"),
+    ]);
+    expect(pi.skills.map((s) => s.name)).toEqual(["ship"]);
   });
 });
